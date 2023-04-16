@@ -1,5 +1,4 @@
 import os
-import pygame
 import random
 import pygame as py
 import threading
@@ -7,38 +6,50 @@ import time
 from os import listdir
 from os.path import isfile, join 
 
+import basics
+
 BG_COLOR = (255,255,255)
 WIDTH, HEIGHT = 640, 640
 FPS = 60
 P_VELOCITY = 5
+bgFiles = [ "Blue.png","Pink.png","Purple.png","Yellow.png"]
 
-# DEFINE functions used for threading
+
+THREADS = list()
 py.init()    
 py.display.set_caption("Scalar")
 window = py.display.set_mode((WIDTH,HEIGHT))
 
-def DUPA_function():
-    print("DUPA_1")
-    time.sleep(3)
-    print("DUPSKO 2")
+def background():
+    pass
 
-def TEST_function():
-    print("TEST_1")
-    time.sleep(6)
-    print("TESTING 2")
+def joinThreads():
+    for index, thread in enumerate(THREADS):
+        thread.join()
+
+def drawBackground():
+    for i in range(5): 
+        print(i)
+        i = i%4
+        image = bgFiles[i] 
+        bgArea, bgImage = basics.get_image("Background",image,WIDTH, HEIGHT)
+        basics.draw(window,bgArea,bgImage);  
+        time.sleep(2)      
 
 def main(window):
     clock =  py.time.Clock()
-
     run = True
-    while run:
-      clock.tick(FPS)
+    DRAW_BACKGROUND = threading.Thread(target=drawBackground)
+    THREADS.append(DRAW_BACKGROUND)
+    DRAW_BACKGROUND.start()
 
-      for event in py.event.get():
-          if event.type == py.QUIT:
-              run = False
-              break
-          
+    while run:
+        clock.tick(FPS)
+        for event in py.event.get():
+            if event.type == py.QUIT:
+                run = False
+                break
+    joinThreads()      
     py.quit()
     quit()
 
@@ -52,14 +63,11 @@ if __name__ == "__main__":
 #     for x in range(5):
 #       print(x)
 # # CREATE a thread and append it to a variable
-#       dupa = threading.Thread(target=DUPA_function)
 #       test = threading.Thread(target=TEST_function)
 # # APEND variable to the list of threads
-#       all_threads.append(dupa)
 #       all_threads.append(test)
 # # STARTS the threads 
-#       dupa.start()
-#       test.start()
+s#       test.start()
 # # END the threads at the end of MAIN thread (program's thread)
 #     for index, thread in enumerate(all_threads):
 #         thread.join()
