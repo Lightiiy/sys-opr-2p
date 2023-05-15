@@ -1,73 +1,68 @@
-import os
-import random
 import pygame as py
 import threading
-import time
-from os import listdir
-from os.path import isfile, join 
 
 import basics
+from player import Player as PlayerObject
+
+player1 = PlayerObject(10, 10, 100, 100)
 
 BG_COLOR = (255,255,255)
 WIDTH, HEIGHT = 640, 640
-FPS = 60
-P_VELOCITY = 5
+FPS = 30
+THREAD_DELAY = 30
 bgFiles = [ "Blue.png","Pink.png","Purple.png","Yellow.png"]
-
-
-THREADS = list()
-py.init()    
-py.display.set_caption("Scalar")
+run = True
 window = py.display.set_mode((WIDTH,HEIGHT))
 
-def background():
-    pass
+THREADS = list()
+py.display.set_caption("Scalar")
 
-def joinThreads():
+def start_threads():
+    for index, thread in enumerate(THREADS):
+        thread.start()
+
+def join_threads():
     for index, thread in enumerate(THREADS):
         thread.join()
-
-def drawBackground():
-    for i in range(5): 
-        print(i)
-        i = i%4
-        image = bgFiles[i] 
-        bgArea, bgImage = basics.get_image("Background",image,WIDTH, HEIGHT)
+        
+#THREAD 1 - SCENE DRAW
+def draw_scene():
+     while run:
+        bgArea, bgImage = basics.get_image("Background",bgFiles[0],WIDTH, HEIGHT)
         basics.draw(window,bgArea,bgImage);  
-        time.sleep(2)      
+        player1.draw(window)
+        py.display.flip()
 
+
+
+#THREAD 2 - PLAYER MOVEMENT
+def handle_movement():
+    while run:
+        player1.loop(FPS)
+        py.time.delay(THREAD_DELAY)
+        
 def main(window):
+    py.init()    
     clock =  py.time.Clock()
-    run = True
-    DRAW_BACKGROUND = threading.Thread(target=drawBackground)
-    THREADS.append(DRAW_BACKGROUND)
-    DRAW_BACKGROUND.start()
+
+    DRAW_SCENE = threading.Thread(target=draw_scene, daemon=True)
+    PLAYER_HANDLE = threading.Thread(target=handle_movement)
+    THREADS.append(DRAW_SCENE)
+    THREADS.append(PLAYER_HANDLE)
+    start_threads()
 
     while run:
         clock.tick(FPS)
         for event in py.event.get():
             if event.type == py.QUIT:
-                run = False
-                break
-    joinThreads()      
+                run= False
+                join_threads()        
+                py.quit()
+                exit()
+            
     py.quit()
     quit()
 
 
 if __name__ == "__main__":
     main(window)
-
-
-# # DEFINE a list of threads to join
-#     all_threads = list()
-#     for x in range(5):
-#       print(x)
-# # CREATE a thread and append it to a variable
-#       test = threading.Thread(target=TEST_function)
-# # APEND variable to the list of threads
-#       all_threads.append(test)
-# # STARTS the threads 
-s#       test.start()
-# # END the threads at the end of MAIN thread (program's thread)
-#     for index, thread in enumerate(all_threads):
-#         thread.join()
