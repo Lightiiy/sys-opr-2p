@@ -15,6 +15,9 @@ def get_image(type, name, areaWidth, areaHeight):
             tiles.append(pos)
     return tiles, image
 
+def get_sprite_block(type, name):
+    return join("assets",type,name)
+
 def draw(window, area, image):
     for tile in area:
         window.blit(image, tile)
@@ -44,3 +47,14 @@ def load_sprite_sheets(dir1,dir2,width,height,direction=False):
         else:
             all_sprites[image.replace(".png","")] = sprites
     return all_sprites
+
+class Object(py.sprite.Sprite):
+    def __init__(self, x,y,width,height,name=None):
+        self.rect = py.Rect(x , y, width, height)
+        self.image = py.Surface((width,height), py.SRCALPHA)
+        self.width = width
+        self.height = height
+        self.name = name
+  
+    def draw(self, window):
+        window.blit(self.image, (self.rect.x, self.rect.y))
