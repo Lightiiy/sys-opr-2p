@@ -4,7 +4,6 @@ import threading
 import basics
 from player import Player as PlayerObject
 
-player1 = PlayerObject(10, 10, 100, 100)
 
 BG_COLOR = (255,255,255)
 WIDTH, HEIGHT = 640, 640
@@ -12,6 +11,8 @@ FPS = 30
 THREAD_DELAY = 30
 bgFiles = [ "Blue.png","Pink.png","Purple.png","Yellow.png"]
 run = True
+player1 = PlayerObject(10, 10, 100, 100)
+
 window = py.display.set_mode((WIDTH,HEIGHT))
 
 THREADS = list()
@@ -43,8 +44,8 @@ def handle_movement():
         
 def main(window):
     py.init()    
+    global run
     clock =  py.time.Clock()
-
     DRAW_SCENE = threading.Thread(target=draw_scene, daemon=True)
     PLAYER_HANDLE = threading.Thread(target=handle_movement)
     THREADS.append(DRAW_SCENE)
@@ -55,7 +56,7 @@ def main(window):
         clock.tick(FPS)
         for event in py.event.get():
             if event.type == py.QUIT:
-                run= False
+                run = False
                 join_threads()        
                 py.quit()
                 exit()
@@ -66,3 +67,5 @@ def main(window):
 
 if __name__ == "__main__":
     main(window)
+
+

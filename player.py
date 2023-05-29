@@ -1,14 +1,14 @@
 import pygame as py
 from os import listdir
 from os.path import isfile, join 
-import math
+import basics
 
 
 class Player(py.sprite.Sprite):
   COLOR = (255,0,0)
   P_VELOCITY = 5
   G_ACCELERATION = 1
-  # SPRITES = basics.load_sprite_sheets("MainCharacters","PinkMan",32,32,True)
+  SPRITES = basics.load_sprite_sheets("MainCharacters","PinkMan",32,32,True)
 
   def __init__(self, x,y,width,height):
     self.rect = py.Rect(x,y,width,height)
@@ -54,6 +54,9 @@ class Player(py.sprite.Sprite):
     self.gravity_count += 1 
 
     self.move(self.x_vel, self.y_vel)
+  
+    
 
   def draw(self, window):
-    py.draw.rect(window, self.COLOR, self.rect)
+    self.sprite = self.SPRITES['idle_' + self.direction][0]
+    window.blit(self.sprite, (self.rect.x, self.rect.y))
