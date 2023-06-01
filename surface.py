@@ -17,3 +17,4 @@ class Block(basics.Object):
        surface.blit(image, (0,0), rect)
        return py.transform.scale2x(surface)
     
+    

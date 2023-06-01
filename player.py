@@ -10,6 +10,7 @@ class Player(py.sprite.Sprite):
   ANIMATION_DELAY = 5
 
   def __init__(self, x,y,width,height):
+    super().__init__()
     self.rect = py.Rect(x,y,width,height)
     self.x_vel = 0
     self.y_vel = 0
@@ -17,6 +18,7 @@ class Player(py.sprite.Sprite):
     self.direction = "left"
     self.animation_count = 0
     self.gravity_count = 0
+    self.jump_count = 0
 
   def move(self,dx,dy):
     self.rect.x += dx
@@ -39,15 +41,26 @@ class Player(py.sprite.Sprite):
     if self.direction != "right":
       self.direction = "right"
       self.animation_count = 0
+    
+  def jump(self):
+    if (self.jump_count != 0):
+      self.fall_count = 0
+      return 
+    self.y_vel = -self.G_ACCELERATION * 8
+    self.animation_count = 0
+    self.jump_count += 1
 
-  def loop(self, fps):
+  def loop(self, fps, collide_left, collide_right):
     keys = py.key.get_pressed()
-    if keys[py.K_d]:
+    if keys[py.K_d] and not collide_right:
       self.move_right(self.P_VELOCITY)
-    elif keys[py.K_a]:
+    elif keys[py.K_a] and not collide_left:
       self.move_left(self.P_VELOCITY)
     else:
       self.slow_down()
+
+    if keys[py.K_SPACE]:
+      self.jump()
 
     self.y_vel += min (1, (self.gravity_count / fps ) * self.G_ACCELERATION)
     self.gravity_count += 1 
