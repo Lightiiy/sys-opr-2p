@@ -1,7 +1,6 @@
 import pygame as py
 import threading
 import random
-import pprint
 
 import basics
 import surface
@@ -9,26 +8,30 @@ from player import Player as PlayerObject
 
 
 BG_COLOR = (255,255,255)
-WIDTH, HEIGHT = 640, 640
+WIDTH, HEIGHT = 1080, 640
 FPS = 60
-THREAD_DELAY = 25
+THREAD_DELAY = 5
 bgFiles = [ "Blue.png","Pink.png","Purple.png","Yellow.png"]
 run = True
+start = False
 player1 = PlayerObject(10, 10, 100, 100)
 
 window = py.display.set_mode((WIDTH,HEIGHT))
+lock = threading.Lock()
 
 THREADS = list()
+
+PLATFORM_THREADS = list()
 
 lock = threading.Lock()
 py.display.set_caption("Scalar")
 
-def start_threads():
-    for index, thread in enumerate(THREADS):
+def start_threads(threads):
+    for index, thread in enumerate(threads):
         thread.start()
 
-def join_threads():
-    for index, thread in enumerate(THREADS):
+def join_threads(threads):
+    for index, thread in enumerate(threads):
         thread.join()
         
 
@@ -80,89 +83,90 @@ def handle_horizontal_collision(player_dx_velocity):
     return collided_object
 
 #THREAD 2 - GENERATE PLATFORMS AT RANDOM HEIGHTS & MOVE THEM?
-blocks_size = 96
-max_segments = 8
-min_segments = 4
-max_height_diff = 2 * blocks_size
-platform_speed = 1
-max_platform_speed = 0
+
+def generate_platform():
+# Randomly determine the length of the platform
+    num_segments = random.randint(surface.min_segments, surface.max_segments)
+    # # Determine the height of the platform based on the previous platform (if any)
+    prev_platform = platforms[-1] if platforms else None
+    if prev_platform:
+        min_height = prev_platform.y - surface.max_height_diff
+        max_height = prev_platform.y + surface.max_height_diff
+        platform_y = random.randint(min_height, max_height)
+    else:
+        platform_y = random.randint(0, WIDTH - surface.blocks_size)
+    platform = [surface.Block(WIDTH + surface.blocks_size * i, platform_y, surface.blocks_size) for i in range (num_segments)]
+    platform[num_segments-1].isLast = True
+
+    for block in platform:
+        with lock:
+            platforms.append(block)
+
+def generate_start():
+    platform = [surface.Block(i * surface.blocks_size, HEIGHT - surface.blocks_size, surface.blocks_size) for i in range(0, WIDTH // surface.blocks_size)]
+    platform[4].isLast = True
+    for block in platform:
+        platforms.append(block)
 
 
-# def generate_platform():
-#     global platforms
+def handle_platforms():
+    while run:
+        if platforms:
+            if platforms[-1].x + platforms[-1].width < 0:
+                print(platforms[-1].isLast)
+                with lock:
+                    first_platform = platforms.pop()
+                    if first_platform.isLast:
+                        generate_platform()
+        else:
+            generate_start()
 
-#     # Randomly determine the length of the platform
-#     num_segments = random.randint(min_segments, max_segments)
+        for block in platforms:
+            if start:
+                block.move_left(surface.platform_speed)
+            
+        py.time.delay(THREAD_DELAY)
 
-#     # Determine the height of the platform based on the previous platform (if any)
-#     prev_platform = platforms[-1] if platforms else None
-#     if prev_platform:
-#         min_height = prev_platform.y - max_height_diff
-#         max_height = prev_platform.y + max_height_diff
-#         platform_y = random.randint(min_height, max_height)
-#     else:
-#         platform_y = random.randint(0, WIDTH - blocks_size)
 
-#     platform = [surface.Block(blocks_size* i,HEIGHT - blocks_size * platform_y, blocks_size) for i in range (num_segments)]
-#     # py.Rect(WIDTH, platform_y, platform_width, blocks_size)
-#     with lock:
-#         platforms.append(platform)
-
-# def handle_platforms():
-#     global platforms, platform_speed
-
-#     while True:
-#         with lock:
-#             for platform in platforms[0]:
-#                 platform.x -= platform_speed
-
-#             # Remove platforms that have moved out of view
-#             # if platforms:
-#                 # first_platform = platforms[0]
-#                 # if first_platform.x + first_platform.width < 0:
-#                     # platforms.pop(0)
-
-#                     # # Generate a new platform when the first platform is removed
-#                     # if len(platforms) == 1:
-#                     #     generate_platform()
-#                     #     generate_platform()
-#                     # else:
-#                     #     generate_platform()
+#SUB THREADS - move assigned object to left
+#IDEA DITCHED - this is so performance heavy it makes my pc look like Electronic Delay Storage Automatic Calculator from 1948
+# def move_platform(block):
+#     while run:
+#         block.move_left(platforms_speed)
 #         py.time.delay(THREAD_DELAY)
+#
+#  [surface.Block(i * surface.blocks_size, HEIGHT - surface.blocks_size, surface.blocks_size) for i in range(-WIDTH // surface.blocks_size, (WIDTH * 2) // surface.blocks_size)  ] 
 
-#         # Increase the platform speed gradually up to the maximum speed
-#         if platform_speed < max_platform_speed:
-#             platform_speed += 0.01
-
-        
 def main(window):
     py.init()    
     global run
+    global start
     clock =  py.time.Clock()
 
-    # generate_platform()
-    
-    # global platforms
-    # platforms = [surface.Block(i * blocks_size, HEIGHT - blocks_size, blocks_size) for i in range(-WIDTH // blocks_size, (WIDTH * 2) // blocks_size)]
-    # platforms.append(surface.Block(blocks_size, HEIGHT - blocks_size* 2, blocks_size) )
+    global platforms
+    platforms = []
 
-    # PLATFORM_HANDLER = threading.Thread(target=handle_platforms,daemon=True)
-    # THREADS.append(PLATFORM_HANDLER)
+    PLATFORM_HANDLER = threading.Thread(target=handle_platforms,daemon=True)
+    THREADS.append(PLATFORM_HANDLER)
 
-    PLAYER_HANDLER = threading.Thread(target=handle_movement)
+    PLAYER_HANDLER = threading.Thread(target=handle_movement,daemon=True)
     THREADS.append(PLAYER_HANDLER)
 
-    start_threads()
+    start_threads(THREADS)
 
     while run:
         clock.tick(FPS)
         for event in py.event.get():
+            if event.type == py.KEYDOWN:
+                if event.key == py.K_RETURN:
+                    start = True
             if event.type == py.QUIT:
                 run = False
         with lock:
             draw_scene()
 
-    join_threads()            
+    join_threads(THREADS)
+    join_threads(PLATFORM_THREADS)            
     py.quit()
     quit()
 
