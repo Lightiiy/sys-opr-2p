@@ -5,6 +5,7 @@ import basics
 class Player(py.sprite.Sprite):
   COLOR = (255,0,0)
   P_VELOCITY = 5
+  PD_VELOCITY = 16
   G_ACCELERATION = 1
   SPRITES = basics.load_sprite_sheets("MainCharacters","PinkMan",32,32,True)
   ANIMATION_DELAY = 5
@@ -14,11 +15,14 @@ class Player(py.sprite.Sprite):
     self.rect = py.Rect(x,y,width,height)
     self.x_vel = 0
     self.y_vel = 0
+    self.image = self.SPRITES
+    self.surface = self.image
     self.mask = None
-    self.direction = "left"
+    self.direction = "right"
     self.animation_count = 0
     self.gravity_count = 0
     self.jump_count = 0
+    self.sprite = self.SPRITES['idle_' + self.direction][0]
 
   def move(self,dx,dy):
     self.rect.x += dx
@@ -29,7 +33,6 @@ class Player(py.sprite.Sprite):
     if self.direction != "left":
       self.direction = "left"
       self.animation_count = 0
-
   def slow_down(self):
     if (self.x_vel != 0):
       self.x_vel = self.x_vel / 10
@@ -46,9 +49,10 @@ class Player(py.sprite.Sprite):
     if (self.jump_count != 0):
       self.fall_count = 0
       return 
-    self.y_vel = -self.G_ACCELERATION * 8
+    self.y_vel = -self.G_ACCELERATION * 16
     self.animation_count = 0
     self.jump_count += 1
+
 
   def loop(self, fps, collide_left, collide_right):
     keys = py.key.get_pressed()
@@ -72,7 +76,11 @@ class Player(py.sprite.Sprite):
     sprite_sheet = "idle"
     if (self.x_vel != 0):
       sprite_sheet = "run"
-
+    elif self.y_vel < 0:
+      if self.jump_count == 1:
+        sprite_sheet = "jump"
+    elif self.y_vel > 1:
+      sprite_sheet = "fall"
     sprite_sheet_name = sprite_sheet + "_" + self.direction
 
     sprites = self.SPRITES[sprite_sheet_name]
@@ -90,12 +98,11 @@ class Player(py.sprite.Sprite):
     self.gravity_count = 0
     self.y_vel = 0
     self.jump_count = 0
-    self.dash_count = 0
 
   def hit_head(self):
     self.y_vel *= -1
 
 
   def draw(self, window):
-    self.sprite = self.SPRITES['idle_' + self.direction][0]
     window.blit(self.sprite, (self.rect.x, self.rect.y))
+

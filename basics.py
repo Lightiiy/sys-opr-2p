@@ -57,4 +57,6 @@ class Object(py.sprite.Sprite):
         self.name = name
   
     def draw(self, window):
+        self.image.unlock()
         window.blit(self.image, (self.rect.x, self.rect.y))
+        self.image.lock()

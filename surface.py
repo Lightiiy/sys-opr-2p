@@ -5,7 +5,7 @@ blocks_size = 96
 max_segments = 6
 min_segments = 1
 max_height_diff = 2 * blocks_size
-max_platform_speed = 0
+max_platform_speed = 5
 platform_speed = 1
 
 class Block(basics.Object):
@@ -17,7 +17,6 @@ class Block(basics.Object):
       self.mask = py.mask.from_surface(self.image)
       self.x = x
       self.y = y
-      self.isLast = False
 
     def get_block(self, size):
        path = basics.get_sprite_block("Terrain", "Terrain.png")
@@ -32,6 +31,6 @@ class Block(basics.Object):
        self.rect.y = self.y
     
     def move_left(self, dx):
-       self.x -= dx
+       self.x -= platform_speed * dx
        self.update()
 
