@@ -1,6 +1,7 @@
-<img src="Game screen.png"/>
 # Scalar
 This program is a simple game implemented using the Pygame library. The game involves a player character navigating a series of platforms by moving left, right, and jumping.
+<img src="Game screen.png"/>
+
 ## Program Structure
 Scalar consists of several modules and threads that work together to create the game. Here is an overview of the main components:
 ## 1. Main Thread
@@ -24,4 +25,4 @@ The game ends when the player falls below the screen, triggering a game over sta
 ## Running the Program
 To run the program, ensure that the necessary dependencies are installed (Pygame) and execute the main script. The game window will open, and the player can control the character using the arrow keys to move left or right and the space bar to jump. The objective is to navigate the platforms and reach as far as possible without falling. If the player falls below the screen, the game ends, and a game over message is displayed.
 Note: The program assumes that the required assets, such as images and sound effects, are available in the specified directories.
-<img src='💀💀💀💀💀.png'>
+<img src='💀💀💀💀💀.png'/>
